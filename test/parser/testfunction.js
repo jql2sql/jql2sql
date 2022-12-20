@@ -1,4 +1,4 @@
-const { nearley, jql_grammer, KINDS } = require("../../parser/parser");
+const { nearley, jql_grammer, KINDS } = require('../../index.js')
 
 function testFunction(expectedField, expectedOp, expectedValue) {
   const expr = `${expectedField} ${expectedOp} ${expectedValue}`;

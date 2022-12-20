@@ -1,5 +1,4 @@
-const { nearley, jql_grammer } = require('../../parser/parser')
-const { transpile2SQL }  = require('../../parser/transpiler')
+const { nearley, jql_grammer, transpile2SQL } = require('../../index.js')
 
 {
   const expr = 'a = b';

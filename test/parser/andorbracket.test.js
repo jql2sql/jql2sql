@@ -1,4 +1,6 @@
-const { nearley, jql_grammer, KINDS, clearAST } = require('../../parser/parser')
+const { nearley, jql_grammer, KINDS, clearAST } = require('../../index.js')
+
+console.log(clearAST);
 
 {
   const expr = 'a = b and c = d';

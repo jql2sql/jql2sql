@@ -1,6 +1,6 @@
 {
   "name": "jql2sql",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Transpiling JQL to SQL",
   "main": "index.js",
   "scripts": {
