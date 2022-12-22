@@ -1,34 +1,27 @@
+const { isArray } = require("lodash");
 const nearley = require("nearley");
 const jql_grammer = require("./jql_grammer.js");
 
-const KINDS = {
-  EXP_FOV : 0,
-  EXP_LTRT : 1,
-  EXP_BRACKET : 2
-};
+/**
+ * Parse JQL to AST(Abstract Syntax Tree)
+ * 
+ * @param {*} expr JQL string
+ * @returns AST
+ */
+function parseJQL(expr) {
+  const parser = new nearley.Parser(nearley.Grammar.fromCompiled(jql_grammer));
 
-function clearAST(exp) {
-  if (exp.kinds == KINDS.EXP_LTRT) {
-    if (Array.isArray(exp.andOr)) {
-      exp.andOr = exp.andOr.join('').split(',').join('');
-    }
-  }
-  else if (exp.kinds == KINDS.EXP_FOV) {
-    if (Array.isArray(exp.field)) {
-      exp.field = exp.field.join('').split(',').join('');
-    }
-    if (Array.isArray(exp.ops)) {
-      exp.operator = exp.ops.join('').split(',').join('');
-    }
-    if (Array.isArray(exp.value)) {
-      exp.value = exp.value.join('').split(',').join('');
-    }
-  }
-  else if (exp.kinds == KINDS.EXP_BRACKET) {
+  parser.feed(expr);
 
+  /**
+   * As we might get multiple ASTs due to ambiguous language definition,
+   * So, to make it clear, always we return first AST, only.
+   */
+  if (isArray(parser.results) && parser.results.length > 0) {
+    return parser.results[0];
   }
 
-  return exp;
+  return null;
 }
 
-module.exports = { nearley, jql_grammer, KINDS, clearAST };
+module.exports = { parseJQL };

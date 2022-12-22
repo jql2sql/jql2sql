@@ -1,4 +1,5 @@
-const { nearley, jql_grammer, KINDS, clearAST } = require('./parser/parser')
+const { parseJQL } = require('./parser/parser')
 const { transpile2SQL }  = require('./parser/transpiler')
+const { KINDS, clearAST }  = require('./parser/utils')
 
-module.exports = { nearley, jql_grammer, KINDS, clearAST, transpile2SQL };
+module.exports = { parseJQL, transpile2SQL, KINDS, clearAST };

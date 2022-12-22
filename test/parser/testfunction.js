@@ -1,16 +1,14 @@
-const { nearley, jql_grammer, KINDS } = require('../../index.js')
+const { parseJQL, KINDS } = require('../../index.js')
 
 function testFunction(expectedField, expectedOp, expectedValue) {
   const expr = `${expectedField} ${expectedOp} ${expectedValue}`;
-  const parser = new nearley.Parser(nearley.Grammar.fromCompiled(jql_grammer));
-  parser.feed(expr);
-  const rlts = parser.results;
-  const kinds = rlts[0].kinds;
-  const field = Array.isArray(rlts[0].field)? rlts[0].field.join('').split(',').join(''): rlts[0].field;
-  const operator = rlts[0].ops[0].join('').split(',').join('');
-  const value = rlts[0].value[0].join('').split(',').join('');
+  const rlt = parseJQL(expr);
+  const kinds = rlt.kinds;
+  const field = Array.isArray(rlt.field)? rlt.field.join('').split(',').join(''): rlt.field;
+  const operator = rlt.ops[0].join('').split(',').join('');
+  const value = rlt.value[0].join('').split(',').join('');
 
-  expect(kinds).toBe(KINDS.EXP_FOV);
+  expect(kinds).toBe(KINDS.AST_FOV);
   expect(field).toBe(expectedField);
   expect(operator).toBe(expectedOp);
   expect(value).toBe(expectedValue);
