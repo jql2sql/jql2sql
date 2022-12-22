@@ -1,4 +1,4 @@
-const { testShouldPass, testShouldFail } = require('./testfunction')
+const { testShouldPass, testShouldFail } = require('../parser/testfunction')
 
 testShouldPass('A', '=', 'a');
 testShouldPass('A', '=', 'A');

@@ -1,5 +1,5 @@
 const { trim } = require("lodash");
-const { KINDS, clearAST } = require("./parser");
+const { KINDS, clearAST } = require("./utils");
 
 function transpileFOV(ast) {
   const field = ast.field;
@@ -26,19 +26,19 @@ function transpileFOV(ast) {
 function transpileAST(ast, f2f) {
   let where = '';
 
-  if (ast.kinds == KINDS.EXP_LTRT) {
+  if (ast.kinds == KINDS.AST_LTRT) {
     let lt = transpileAST(ast.expLt);
     let rt = transpileAST(ast.expRt);
 
     where = `${lt} ${ast.andOr} ${rt}`;
   }
-  else if (ast.kinds == KINDS.EXP_FOV) {
+  else if (ast.kinds == KINDS.AST_FOV) {
     const fov = transpileFOV(clearAST(ast));
     const { field, operator, value } = fov;
 
     where = `${field} ${operator} ${value}`;
   }
-  else if (ast.kinds == KINDS.EXP_BRACKET) {
+  else if (ast.kinds == KINDS.AST_BRACKET) {
     where = '(' + transpileAST(ast.exp) + ')';
   }
 
