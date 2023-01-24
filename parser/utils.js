@@ -8,6 +8,45 @@ const KINDS = {
   AST_BRACKET : 2
 };
 
+function myJoin(mightBeArray) {
+  let str = '';
+
+  if (Array.isArray(mightBeArray)) {
+    for (element of mightBeArray) {
+      if (Array.isArray(element)) {
+        str += myJoin(element);
+      }
+      else {
+        str += element;
+      }
+    }
+  }
+  else {
+    str += mightBeArray;
+  }
+
+  return str;
+}
+
+function clearSpaceFromValueOfInOperator(value) {
+  value = value.trim();
+  let str = '';
+  let skipSpace = true;
+
+  for (c of value) {
+    if (c == '"') {
+      skipSpace = !skipSpace;
+    }
+
+    if (skipSpace == true && c == ' ')
+      continue;
+    
+    str += c;
+  }
+
+  return str.split(',').join(', ');
+}
+
 /**
  * Clear AST,
  * 
@@ -18,20 +57,30 @@ const KINDS = {
  * @returns AST continas field or value as string
  */
 function clearAST(ast) {
+  ast.cleaned = {}
+
   if (ast.kinds == KINDS.AST_LTRT) {
     if (Array.isArray(ast.andOr)) {
-      ast.andOr = ast.andOr.join('').split(',').join('');
+      ast.cleaned.andOr = myJoin(ast.andOr);
+      ast.cleaned.andOr = ast.cleaned.andOr.trim();
     }
   }
   else if (ast.kinds == KINDS.AST_FOV) {
     if (Array.isArray(ast.field)) {
-      ast.field = ast.field.join('').split(',').join('');
+      ast.cleaned.field = myJoin(ast.field);
+      ast.cleaned.field = ast.cleaned.field.trim();
     }
     if (Array.isArray(ast.ops)) {
-      ast.operator = ast.ops.join('').split(',').join('');
+      ast.cleaned.operator = myJoin(ast.ops);
+      ast.cleaned.operator = ast.cleaned.operator.trim();
     }
     if (Array.isArray(ast.value)) {
-      ast.value = ast.value.join('').split(',').join('');
+      ast.cleaned.value = myJoin(ast.value);
+      ast.cleaned.value = ast.cleaned.value.trim();
+      
+      if (ast.cleaned.operator == 'in' || ast.cleaned.operator == 'not in') {
+        ast.cleaned.value = clearSpaceFromValueOfInOperator(ast.cleaned.value);
+      }
     }
   }
   else if (ast.kinds == KINDS.AST_BRACKET) {
@@ -41,4 +90,4 @@ function clearAST(ast) {
   return ast;
 }
 
-module.exports = { KINDS, clearAST };
+module.exports = { KINDS, clearAST, clearSpaceFromValueOfInOperator, myJoin };

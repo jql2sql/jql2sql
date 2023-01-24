@@ -11,13 +11,13 @@ const { parseJQL, KINDS, clearAST } = require('../../index.js')
     exp = clearAST(exp);
 
     expect(exp.kinds).toBe(KINDS.AST_LTRT);
-    expect(exp.andOr).toBe('and');
+    expect(exp.cleaned.andOr).toBe('and');
     expect(expLt.kinds).toBe(KINDS.AST_FOV);
-    expect(expLt.field).toBe('a');
-    expect(expLt.value).toBe('b');
+    expect(expLt.cleaned.field).toBe('a');
+    expect(expLt.cleaned.value).toBe('b');
     expect(expRt.kinds).toBe(KINDS.AST_FOV);
-    expect(expRt.field).toBe('c');
-    expect(expRt.value).toBe('d');
+    expect(expRt.cleaned.field).toBe('c');
+    expect(expRt.cleaned.value).toBe('d');
   });
 }
 
@@ -32,13 +32,13 @@ const { parseJQL, KINDS, clearAST } = require('../../index.js')
     exp = clearAST(exp);
 
     expect(exp.kinds).toBe(KINDS.AST_LTRT);
-    expect(exp.andOr).toBe('or');
+    expect(exp.cleaned.andOr).toBe('or');
     expect(expLt.kinds).toBe(KINDS.AST_FOV);
-    expect(expLt.field).toBe('a');
-    expect(expLt.value).toBe('b');
+    expect(expLt.cleaned.field).toBe('a');
+    expect(expLt.cleaned.value).toBe('b');
     expect(expRt.kinds).toBe(KINDS.AST_FOV);
-    expect(expRt.field).toBe('c');
-    expect(expRt.value).toBe('d');
+    expect(expRt.cleaned.field).toBe('c');
+    expect(expRt.cleaned.value).toBe('d');
   });
 }
 
@@ -53,9 +53,9 @@ const { parseJQL, KINDS, clearAST } = require('../../index.js')
 
     expect(exp.kinds).toBe(KINDS.AST_BRACKET);
     expect(innerExp.kinds).toBe(KINDS.AST_FOV);
-    expect(innerExp.field).toBe('a');
-    expect(innerExp.operator).toBe('=');
-    expect(innerExp.value).toBe('b');
+    expect(innerExp.cleaned.field).toBe('a');
+    expect(innerExp.cleaned.operator).toBe('=');
+    expect(innerExp.cleaned.value).toBe('b');
   });
 }
 
@@ -73,9 +73,9 @@ const { parseJQL, KINDS, clearAST } = require('../../index.js')
     expect(exp.kinds).toBe(KINDS.AST_BRACKET);
     expect(inner1Exp.kinds).toBe(KINDS.AST_BRACKET);
     expect(inner2Exp.kinds).toBe(KINDS.AST_BRACKET);
-    expect(inner3Exp.field).toBe('a');
-    expect(inner3Exp.operator).toBe('=');
-    expect(inner3Exp.value).toBe('b');
+    expect(inner3Exp.cleaned.field).toBe('a');
+    expect(inner3Exp.cleaned.operator).toBe('=');
+    expect(inner3Exp.cleaned.value).toBe('b');
   });
 }
 
@@ -95,17 +95,17 @@ const { parseJQL, KINDS, clearAST } = require('../../index.js')
     expect(innnerExp2.kinds).toBe(KINDS.AST_BRACKET);
     const innnerExp3 = clearAST(innnerExp2.exp);
     expect(innnerExp3.kinds).toBe(KINDS.AST_FOV);
-    expect(innnerExp3.field).toBe('a');
-    expect(innnerExp3.operator).toBe('=');
-    expect(innnerExp3.value).toBe('b');
+    expect(innnerExp3.cleaned.field).toBe('a');
+    expect(innnerExp3.cleaned.operator).toBe('=');
+    expect(innnerExp3.cleaned.value).toBe('b');
 
     const exlRt = clearAST(inner1Exp.expRt);
     expect(exlRt.kinds).toBe(KINDS.AST_BRACKET);
     const innnerExp4 = clearAST(exlRt.exp);
     expect(innnerExp4.kinds).toBe(KINDS.AST_FOV);
-    expect(innnerExp4.field).toBe('c');
-    expect(innnerExp4.operator).toBe('=');
-    expect(innnerExp4.value).toBe('d');
+    expect(innnerExp4.cleaned.field).toBe('c');
+    expect(innnerExp4.cleaned.operator).toBe('=');
+    expect(innnerExp4.cleaned.value).toBe('d');
   });
 }
 
@@ -117,30 +117,30 @@ const { parseJQL, KINDS, clearAST } = require('../../index.js')
     exp = clearAST(exp);
 
     expect(exp.kinds).toBe(KINDS.AST_LTRT);
-    expect(exp.andOr).toBe('or');
+    expect(exp.cleaned.andOr).toBe('or');
     const expLt = clearAST(exp.expLt);
     expect(expLt.kinds).toBe(KINDS.AST_BRACKET);
     const innnerExpLt = clearAST(expLt.exp);
     expect(innnerExpLt.kinds).toBe(KINDS.AST_LTRT);
-    expect(innnerExpLt.andOr).toBe('and');
+    expect(innnerExpLt.cleaned.andOr).toBe('and');
     const expLt2 = clearAST(innnerExpLt.expLt);
     expect(expLt2.kinds).toBe(KINDS.AST_FOV);
-    expect(expLt2.field).toBe('a');
-    expect(expLt2.operator).toBe('=');
-    expect(expLt2.value).toBe('b');
+    expect(expLt2.cleaned.field).toBe('a');
+    expect(expLt2.cleaned.operator).toBe('=');
+    expect(expLt2.cleaned.value).toBe('b');
     const expRt2 = clearAST(innnerExpLt.expRt);
     expect(expRt2.kinds).toBe(KINDS.AST_FOV);
-    expect(expRt2.field).toBe('c');
-    expect(expRt2.operator).toBe('=');
-    expect(expRt2.value).toBe('d');
+    expect(expRt2.cleaned.field).toBe('c');
+    expect(expRt2.cleaned.operator).toBe('=');
+    expect(expRt2.cleaned.value).toBe('d');
 
     const expRt = clearAST(exp.expRt);
     expect(expRt.kinds).toBe(KINDS.AST_BRACKET);
     const innnerExpRt = clearAST(expRt.exp);
     expect(innnerExpRt.kinds).toBe(KINDS.AST_FOV);
-    expect(innnerExpRt.field).toBe('e');
-    expect(innnerExpRt.operator).toBe('=');
-    expect(innnerExpRt.value).toBe('f');
+    expect(innnerExpRt.cleaned.field).toBe('e');
+    expect(innnerExpRt.cleaned.operator).toBe('=');
+    expect(innnerExpRt.cleaned.value).toBe('f');
   });
 }
 

@@ -1,14 +1,17 @@
 {
   "name": "jql2sql",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Transpiling JQL to SQL",
   "main": "index.js",
   "scripts": {
     "start": "node ./demo/index.js",
     "build:parser": "nearleyc parser/jql_grammer.ne -o parser/jql_grammer.js",
     "test": "npm run test:parser && npm run test:transpiler",
-    "test:parser": "jest --detectOpenHandles --verbose --config=./test/parser/jest.config.js",
-    "test:transpiler": "jest --detectOpenHandles --verbose --config=./test/transpiler/jest.config.js"
+    "test:parser": "jest --color --detectOpenHandles --verbose --config=./test/parser/jest.config.js",
+    "test:parser:field": "jest --color --detectOpenHandles --verbose --config=./test/parser/jest_field.config.js",
+    "test:parser:operator": "jest --color --detectOpenHandles --verbose --config=./test/parser/jest_operator.config.js",
+    "test:parser:value": "jest --color --detectOpenHandles --verbose --config=./test/parser/jest_value.config.js",
+    "test:transpiler": "jest --color --detectOpenHandles --verbose --config=./test/transpiler/jest.config.js"
   },
   "repository": {
     "type": "git",
