@@ -23,7 +23,7 @@ function _myJoin(mightBeArray) {
   let str = '';
 
   if (Array.isArray(mightBeArray)) {
-    for (element of mightBeArray) {
+    for (const element of mightBeArray) {
       if (Array.isArray(element)) {
         str += myJoin(element);
       }
