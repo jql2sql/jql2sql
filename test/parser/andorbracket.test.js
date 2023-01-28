@@ -191,7 +191,15 @@ const { parseJQL, KINDS, clearAST } = require('../../index.js')
   const expr = '(a=b(';
 
   it(expr, () => {
-    const exp = parseJQL(expr);
-    expect(exp).toBe(null);
+    let exception = null;
+
+    try {
+      parseJQL(expr);
+    }
+    catch (e) {
+      exception = e;
+    }
+
+    expect(exception).not.toBeNull();
   });
 }

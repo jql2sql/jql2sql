@@ -1,141 +1,141 @@
 const { parseJQL, transpile2SQL } = require('../../index.js')
 
 {
-  const expr = 'a = b';
+  const expr = 'a in (b)';
 
   it(expr, () => {
     const ast = parseJQL(expr);
     const where = transpile2SQL(ast, []);
-    expect(where).toBe('a = b');
+    expect(where).toBe('a in (\'b\')');
   });
 }
 
 {
-  const expr = 'a != b';
+  const expr = 'a in (   b)';
 
   it(expr, () => {
     const ast = parseJQL(expr);
     const where = transpile2SQL(ast, []);
-    expect(where).toBe('a != b');
+    expect(where).toBe('a in (\'b\')');
   });
 }
 
 {
-  const expr = 'a > b';
+  const expr = 'a in (b   )';
 
   it(expr, () => {
     const ast = parseJQL(expr);
     const where = transpile2SQL(ast, []);
-    expect(where).toBe('a > b');
+    expect(where).toBe('a in (\'b\')');
   });
 }
 
 {
-  const expr = 'a < b';
+  const expr = 'a in (  "b"   )';
 
   it(expr, () => {
     const ast = parseJQL(expr);
     const where = transpile2SQL(ast, []);
-    expect(where).toBe('a < b');
+    expect(where).toBe('a in (\'b\')');
   });
 }
 
 {
-  const expr = 'a >= b';
+  const expr = 'a in (field)';
 
   it(expr, () => {
     const ast = parseJQL(expr);
     const where = transpile2SQL(ast, []);
-    expect(where).toBe('a >= b');
+    expect(where).toBe('a in (\'field\')');
   });
 }
 
 {
-  const expr = 'a <= b';
+  const expr = 'a in (   field)';
 
   it(expr, () => {
     const ast = parseJQL(expr);
     const where = transpile2SQL(ast, []);
-    expect(where).toBe('a <= b');
+    expect(where).toBe('a in (\'field\')');
   });
 }
 
 {
-  const expr = 'a = 1234';
+  const expr = 'a in (field   )';
 
   it(expr, () => {
     const ast = parseJQL(expr);
     const where = transpile2SQL(ast, []);
-    expect(where).toBe('a = 1234');
+    expect(where).toBe('a in (\'field\')');
   });
 }
 
 {
-  const expr = 'a != 10.2023';
+  const expr = 'a in (  "field"   )';
 
   it(expr, () => {
     const ast = parseJQL(expr);
     const where = transpile2SQL(ast, []);
-    expect(where).toBe('a != 10.2023');
+    expect(where).toBe('a in (\'field\')');
   });
 }
 
 {
-  const expr = 'a = b and c = d';
+  const expr = 'a in ("abcd", "efgh")';
 
   it(expr, () => {
     const ast = parseJQL(expr);
     const where = transpile2SQL(ast, []);
-    expect(where).toBe('a = b and c = d');
+    expect(where).toBe('a in (\'abcd\', \'efgh\')');
   });
 }
 
 {
-  const expr = 'a=b     or      c     =     d';
+  const expr = 'a in (     "abcd", "efgh"     )';
 
   it(expr, () => {
     const ast = parseJQL(expr);
     const where = transpile2SQL(ast, []);
-    expect(where).toBe('a = b or c = d');
+    expect(where).toBe('a in (\'abcd\', \'efgh\')');
   });
 }
 
 {
-  const expr = '(a=b)';
+  const expr = 'a in ("abcd"     ,    "efgh")';
 
   it(expr, () => {
     const ast = parseJQL(expr);
     const where = transpile2SQL(ast, []);
-    expect(where).toBe('(a = b)');
+    expect(where).toBe('a in (\'abcd\', \'efgh\')');
   });
 }
 
 {
-  const expr = '(((a=b)))';
+  const expr = 'a in (   "abcd"     ,    "efgh"                       )';
 
   it(expr, () => {
     const ast = parseJQL(expr);
     const where = transpile2SQL(ast, []);
-    expect(where).toBe('(((a = b)))');
+    expect(where).toBe('a in (\'abcd\', \'efgh\')');
   });
 }
 
 {
-  const expr = '(((a=b))and(c=d))';
+  const expr = 'a in ("abcd", 2023, "abcd@email.com", "http://www.abcd.com")';
 
   it(expr, () => {
     const ast = parseJQL(expr);
     const where = transpile2SQL(ast, []);
-    expect(where).toBe('(((a = b)) and (c = d))');
+    expect(where).toBe('a in (\'abcd\', 2023, \'abcd@email.com\', \'http://www.abcd.com\')');
   });
 }
 
 {
-  const expr = '(a=b and c=d)or(e=f)';
+  const expr = 'a in (    "abcd"    ,   2023    ,    "abcd@email.com"   ,     "http://www.abcd.com"   )';
 
   it(expr, () => {
     const ast = parseJQL(expr);
     const where = transpile2SQL(ast, []);
-    expect(where).toBe('(a = b and c = d) or (e = f)');
+    expect(where).toBe('a in (\'abcd\', 2023, \'abcd@email.com\', \'http://www.abcd.com\')');
   });
 }

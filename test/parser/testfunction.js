@@ -1,18 +1,14 @@
-const { parseJQL, KINDS, clearAST, clearSpaceFromValueOfInOperator, myJoin } = require('../../index.js')
+const { parseJQL, KINDS, clearAST} = require('../../index.js')
 
 function testFunction(expectedField, expectedOp, expectedValue) {
   const expr = `${expectedField} ${expectedOp} ${expectedValue}`;
-  console.log('Input: ' + expr);
   let rlt = parseJQL(expr);
   rlt = clearAST(rlt);
-
+  
   const kinds = rlt.kinds;
   const field = rlt.cleaned.field;
   const operator = rlt.cleaned.operator;
-  const value = myJoin(rlt.value);
-  
-  const rltExpr = `Parsed output: ${field} ${operator} ${value}`;
-  console.log(rltExpr);
+  const value = rlt.cleaned.value;
 
   expect(kinds).toBe(KINDS.AST_FOV);
   expect(field).toBe(expectedField);

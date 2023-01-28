@@ -32,6 +32,17 @@ exp -> exp [ ]:* andOr [ ]:* exp {%
   }
 %}
 
+field -> [a-zA-Z] [a-zA-Z0-9_-]:*
+symbolOps -> "=" | "!=" | ">" | "<" | ">=" | "<="
+
+value -> alphabetNumberUnderbar | number | doubleQuoteValueWithSpace
+alphabetNumberUnderbar -> [a-zA-Z] [a-zA-Z0-9_]:*
+number -> naturalNumber | decimal
+naturalNumber -> [1-9] [0-9]:*
+decimal -> zeroDecimal | nonZeroDecimal
+zeroDecimal -> "0." [0-9]:* [1-9]:+
+nonZeroDecimal -> [1-9]:+ [0-9]:* . [0-9]:* [1-9]:+
+
 exp -> field [ ]:* symbolOps [ ]:* value {%
   function expFOV(data) {
     return {
@@ -43,10 +54,20 @@ exp -> field [ ]:* symbolOps [ ]:* value {%
   }
 %}
 
-exp -> field [ ]:* opsAllowOnlyStringValue [ ]:* field {%
+opsTilde -> "~" | "!~"
+
+doubleQuoteValueWithRightAsterisk -> "\"" [\w :./@]:+ "*\""
+doubleQuoteValueWithLeftAsterisk -> "\"*" [\w :./@]:+ "\""
+doubleQuoteValueWithBothAsterisk -> "\"*" [\w :./@]:+ "*\""
+doubleQuoteValueNoSpace -> "\"" [\w:./@]:+ "\""
+noQuoteValueNoSpace -> [\w:./@]:+
+nestedDoubleQuoteValue -> "\"\\\"" [\w :./@]:+  "\\\"\""
+doubleQuoteValueWithSpace -> "\"" [\w :./@]:+ "\""
+
+exp -> field [ ]:* opsTilde [ ]:* noQuoteValueNoSpace {%
   function expFOV(data) {
     const valueHint = {};
-    valueHint.text = 'field';
+    valueHint.text = 'noQuoteValueNoSpace';
 
     return {
       kinds: KINDS.EXP_FOV,
@@ -58,10 +79,10 @@ exp -> field [ ]:* opsAllowOnlyStringValue [ ]:* field {%
   }
 %}
 
-exp -> field [ ]:* opsAllowOnlyStringValue [ ]:* simpleDoubleQuoteValue {%
+exp -> field [ ]:* opsTilde [ ]:* doubleQuoteValueNoSpace {%
   function expFOV(data) {
     const valueHint = {};
-    valueHint.text = 'simpleDoubleQuoteValue';
+    valueHint.text = 'doubleQuoteValueNoSpace';
 
     return {
       kinds: KINDS.EXP_FOV,
@@ -73,7 +94,7 @@ exp -> field [ ]:* opsAllowOnlyStringValue [ ]:* simpleDoubleQuoteValue {%
   }
 %}
 
-exp -> field [ ]:* opsAllowOnlyStringValue [ ]:* doubleQuoteValueWithSpace {%
+exp -> field [ ]:* opsTilde [ ]:+ doubleQuoteValueWithSpace {%
   function expFOV(data) {
     const valueHint = {};
     valueHint.text = 'doubleQuoteValueWithSpace';
@@ -88,22 +109,7 @@ exp -> field [ ]:* opsAllowOnlyStringValue [ ]:* doubleQuoteValueWithSpace {%
   }
 %}
 
-exp -> field [ ]:* opsAllowOnlyStringValue [ ]:* doubleQuoteValueWithAsterisk {%
-  function expFOV(data) {
-    const valueHint = {};
-    valueHint.text = 'doubleQuoteValueWithAsterisk';
-
-    return {
-      kinds: KINDS.EXP_FOV,
-      field: data[0],
-      ops: data[2],
-      valueHint: valueHint,
-      value: data[4]
-    }
-  }
-%}
-
-exp -> field [ ]:* opsAllowOnlyStringValue [ ]:* nestedDoubleQuoteValue {%
+exp -> field [ ]:* opsTilde [ ]:* nestedDoubleQuoteValue {%
   function expFOV(data) {
     const valueHint = {};
     valueHint.text = 'nestedDoubleQuoteValue';
@@ -118,11 +124,63 @@ exp -> field [ ]:* opsAllowOnlyStringValue [ ]:* nestedDoubleQuoteValue {%
   }
 %}
 
-exp -> field [ ]:* opsIn [ ]:* inValue {%
+exp -> field [ ]:* opsTilde [ ]:* doubleQuoteValueWithBothAsterisk {%
   function expFOV(data) {
     const valueHint = {};
-    valueHint.text = 'inValue';
+    valueHint.text = 'doubleQuoteValueWithBothAsterisk';
 
+    return {
+      kinds: KINDS.EXP_FOV,
+      field: data[0],
+      ops: data[2],
+      valueHint: valueHint,
+      value: data[4]
+    }
+  }
+%}
+
+exp -> field [ ]:* opsTilde [ ]:* doubleQuoteValueWithRightAsterisk {%
+  function expFOV(data) {
+    const valueHint = {};
+    valueHint.text = 'doubleQuoteValueWithRightAsterisk';
+
+    return {
+      kinds: KINDS.EXP_FOV,
+      field: data[0],
+      ops: data[2],
+      valueHint: valueHint,
+      value: data[4]
+    }
+  }
+%}
+
+exp -> field [ ]:* opsTilde [ ]:* doubleQuoteValueWithLeftAsterisk {%
+  function expFOV(data) {
+    const valueHint = {};
+    valueHint.text = 'doubleQuoteValueWithLeftAsterisk';
+
+    return {
+      kinds: KINDS.EXP_FOV,
+      field: data[0],
+      ops: data[2],
+      valueHint: valueHint,
+      value: data[4]
+    }
+  }
+%}
+
+opsIn -> "not in" | "in"
+
+inValue -> "(" [ ]:* fieldOrdoubleQuoteValueWithSpace [ ]:* :? repeatedCommaField [ ]:* ")"
+fieldOrdoubleQuoteValueWithSpace -> field | doubleQuoteValueWithSpace | number
+repeatedCommaField -> ( commaFieldOrCommaDoubleQuoteValueWithSpace [ ]:* ):*
+commaFieldOrCommaDoubleQuoteValueWithSpace -> commaField | commaDoubleQuoteValueWithSpace | commaNumber
+commaField -> "," [ ]:* field
+commaNumber -> "," [ ]:* number
+commaDoubleQuoteValueWithSpace -> "," [ ]:* doubleQuoteValueWithSpace
+
+exp -> field [ ]:* opsIn [ ]:* inValue {%
+  function expFOV(data) {
     return {
       kinds: KINDS.EXP_FOV,
       field: data[0],
@@ -132,31 +190,37 @@ exp -> field [ ]:* opsIn [ ]:* inValue {%
   }
 %}
 
-field -> [a-zA-Z] [a-zA-Z0-9_]:*
-
-opsAllowOnlyStringValue -> opsTextValue | opsIs
-opsTextValue -> "=" | "!=" | "~" | "!~"
+opsEuqal -> "=" | "!="
 opsIs -> "is not" | "is"
-opsIn -> "not in" | "in"
 
-simpleDoubleQuoteValue -> "\"" [\w:./@]:+ "\""
-doubleQuoteValueWithSpace -> "\"" [\w :./@]:+ "\""
-doubleQuoteValueWithAsterisk -> "\"" [*] [\w :./@]:+ "\""
-nestedDoubleQuoteValue -> "\"" "\\" "\"" [\w :./@]:+  "\\" "\"" "\""
+exp -> field [ ]:* opsIs [ ]:* value {%
+  function expFOV(data) {
+    const valueHint = {};
+    valueHint.text = 'value';
 
-fieldOrdoubleQuoteValue -> field | doubleQuoteValueWithSpace
-commaFieldOrdoubleQuoteValue -> "," [ ]:* [a-zA-Z0-9_]:* | "," [ ]:* "\"" [\w :./@]:+ "\""
-inValue -> "(" [ ]:* fieldOrdoubleQuoteValue [ ]:* :? commaField [ ]:* ")"
-commaField -> ( commaFieldOrdoubleQuoteValue [ ]:* ):*
+    return {
+      kinds: KINDS.EXP_FOV,
+      field: data[0],
+      ops: data[2],
+      valueHint: valueHint,
+      value: data[4]
+    }
+  }
+%}
 
-# ops -> textOps | symbolOps
-symbolOps -> "=" | "!=" | ">" | "<" | ">=" | "<=" | "~" | "!~"
+exp -> field [ ]:* opsIs [ ]:* doubleQuoteValueWithSpace {%
+  function expFOV(data) {
+    const valueHint = {};
+    valueHint.text = 'doubleQuoteValueWithSpace';
 
-value -> alphabetNumberUnderbar | naturalNumber | function  | decimal
-alphabetNumberUnderbar -> [a-zA-Z] [a-zA-Z0-9_]:*
-naturalNumber -> [1-9] [0-9]:*
+    return {
+      kinds: KINDS.EXP_FOV,
+      field: data[0],
+      ops: data[2],
+      valueHint: valueHint,
+      value: data[4]
+    }
+  }
+%}
+
 function -> [a-zA-Z] [a-zA-Z0-9_]:* "()"
-
-decimal -> zeroDecimal | nonZeroDecimal
-zeroDecimal -> "0." [0-9]:* [1-9]:+
-nonZeroDecimal -> [1-9]:+ . [0-9]:* [1-9]:+

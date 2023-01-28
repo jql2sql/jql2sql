@@ -8,7 +8,18 @@ const KINDS = {
   AST_BRACKET : 2
 };
 
+// https://stackoverflow.com/questions/175739/how-can-i-check-if-a-string-is-a-valid-number
+function isNumeric(str) {
+  if (typeof str != "string") return false; // we only process strings!  
+  return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+         !isNaN(parseFloat(str)); // ...and ensure strings of whitespace fail
+}
+
 function myJoin(mightBeArray) {
+  return _myJoin(mightBeArray);
+}
+
+function _myJoin(mightBeArray) {
   let str = '';
 
   if (Array.isArray(mightBeArray)) {
@@ -26,25 +37,6 @@ function myJoin(mightBeArray) {
   }
 
   return str;
-}
-
-function clearSpaceFromValueOfInOperator(value) {
-  value = value.trim();
-  let str = '';
-  let skipSpace = true;
-
-  for (c of value) {
-    if (c == '"') {
-      skipSpace = !skipSpace;
-    }
-
-    if (skipSpace == true && c == ' ')
-      continue;
-    
-    str += c;
-  }
-
-  return str.split(',').join(', ');
 }
 
 /**
@@ -70,17 +62,24 @@ function clearAST(ast) {
       ast.cleaned.field = myJoin(ast.field);
       ast.cleaned.field = ast.cleaned.field.trim();
     }
+    else {
+      ast.cleaned.field = ast.field.trim();
+    }
+
     if (Array.isArray(ast.ops)) {
       ast.cleaned.operator = myJoin(ast.ops);
       ast.cleaned.operator = ast.cleaned.operator.trim();
     }
+    else {
+      ast.cleaned.operator = ast.operator.trim();
+    }
+
     if (Array.isArray(ast.value)) {
       ast.cleaned.value = myJoin(ast.value);
       ast.cleaned.value = ast.cleaned.value.trim();
-      
-      if (ast.cleaned.operator == 'in' || ast.cleaned.operator == 'not in') {
-        ast.cleaned.value = clearSpaceFromValueOfInOperator(ast.cleaned.value);
-      }
+    }
+    else {
+      ast.cleaned.value = ast.value.trim();
     }
   }
   else if (ast.kinds == KINDS.AST_BRACKET) {
@@ -90,4 +89,4 @@ function clearAST(ast) {
   return ast;
 }
 
-module.exports = { KINDS, clearAST, clearSpaceFromValueOfInOperator, myJoin };
+module.exports = { KINDS, clearAST, myJoin, isNumeric };

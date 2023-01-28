@@ -1,18 +1,12 @@
-const { trim, has } = require("lodash");
-const { KINDS } = require("./utils");
+const { has } = require("lodash");
+const { KINDS, isNumeric, clearAST } = require("./utils");
 
 function transpileFOV(ast) {
-  const field = ast.cleaned.field;
-  const operator = ast.cleaned.operator;
-  let value = ast.cleaned.value;
-  // console.log('transpileFOV: ' + `${field} ${operator} ${value}`);
-  // console.log(ast);
-
   /** We may use these operators without transfiling */
   const opsGroup1 = ['=', '!=', '>', '<', '>=', '<=', 'in', 'not in'];
   /** Operators should be transpiled */
   const opsGroup2 = ['~', '!~', 'is', 'is not'];
-
+  
   const opsTranspiling = {
     /** We may use these operators without transfiling */
     '=': '=',
@@ -28,43 +22,96 @@ function transpileFOV(ast) {
     '!~': 'NOT LIKE',
     'is': '=',
     'is not': '!='
-  }
+  }  
+
+  // console.log(ast);
+
+  const field = ast.cleaned.field;
+  const operator = ast.cleaned.operator;
+  let value = ast.cleaned.value;
   const transfiledOperator = opsTranspiling[operator];
-  console.log(transfiledOperator);
 
-  if (has(ast, 'valueHint') && has(ast.valueHint, 'text')) {
-    const hintText = ast.valueHint.text;
-    if (hintText == 'simpleDoubleQuoteValue') {
-      // escape " i.e) "blah" -> blah
-      value = value.substr(1, value.length - (1*2));
-      value = `'${value}'`;
-    }
-    else if (hintText == 'doubleQuoteValueWithSpace') {
-      // escape " i.e) "blah" -> blah
-      value = value.substr(1, value.length - (1*2));
-      // value contains ' '(space)
-      if (value.indexOf(' ') >= 0) {
-        const vs = value.split(' ');
-        const fovs = vs.map(v => `${field} ${transfiledOperator} '${v}'`);
+  // console.log('transpileFOV() ' + `${field} ${operator} ${value}`);
 
-        return '(' + fovs.join(' and ') + ')';
+  if (operator === 'in'
+      || operator === 'not in') {
+    /**
+     * b or "b" -> 'b'
+     * @param {*} v  b or "b"
+     * @returns 'b'
+     */
+    function valueForIn(v) {
+      v = v.trim();
+
+      if (v[0] == '\"')
+        v = v.substr(1, v.length - (1*2));
+
+      // v is not number, we surround with '
+      if (!isNumeric(v)) {
+        v = '\'' + v+ '\''
       }
+
+      return v;
     }
-    else if (hintText == 'doubleQuoteValueWithAsterisk') {
-      // escape " i.e) "blah" -> blah
-      value = value.substr(1, value.length - 2);
-      value = value.replace('*', '%');
-      value = `'${value}'`;
+
+    value = value.substr(1, value.length - (1*2));
+
+    if (value.indexOf(',') >= 0) {
+      let vs = value.split(',');
+      vs = vs.map(v => valueForIn(v));
+      value = vs.join(', ');
     }
-    else if (hintText == 'nestedDoubleQuoteValue') {
-      // escape "\"blah\"" i.e) "\"blah\"" -> blah
-      value = value.substr(3, value.length - (3*2));
-      value = `'${value}'`;
+    else {
+      value = valueForIn(value);
     }
+
+    value = '(' + value + ')';
   }
 
-  // Transpile value as per operator
-  // return {field: field, operator: transfiledOperator, value: value};
+  if (operator === '~'
+      || operator === '!~') {
+    if (has(ast, 'valueHint') && has(ast.valueHint, 'text')) {
+      const hintText = ast.valueHint.text;
+      if (hintText == 'noQuoteValueNoSpace') {
+        value = `'${value}'`;
+      }
+      else if (hintText == 'doubleQuoteValueNoSpace') {
+        // Escape " i.e) "blah" -> blah
+        value = value.substr(1, value.length - (1*2));
+        value = `'${value}'`;
+      }
+      else if (hintText == 'doubleQuoteValueWithSpace') {
+        // Escape " i.e) "blah" -> blah
+        value = value.substr(1, value.length - (1*2));
+        // value contains ' '(space)
+        if (value.indexOf(' ') >= 0) {
+          const vs = value.split(' ');
+          const fovs = vs.map(v => `${field} ${transfiledOperator} '${v}'`);
+
+          value = '(' + fovs.join(' and ') + ')';
+        }
+      
+        return value;
+      }
+      else if (hintText == 'doubleQuoteValueWithLeftAsterisk'
+               || hintText == 'doubleQuoteValueWithRightAsterisk'
+               || hintText == 'doubleQuoteValueWithBothAsterisk') {
+        // Escape "*blah" i.e) "*blah" -> *blah
+        // Escape "blah*" i.e) "blah*" -> blah*
+        // Escape "*blah*" i.e) "*blah*" -> *blah*
+        value = value.substr(1, value.length - 2);
+        value = value.replace('*', '%');
+        value = value.replace('*', '%');
+        value = `'${value}'`;
+      }
+      else if (hintText == 'nestedDoubleQuoteValue') {
+        // Escape "\"blah\"" i.e) "\"blah\"" -> blah
+        value = value.substr(3, value.length - (3*2));
+        value = `'%${value}%'`;
+      }
+    }        
+  }
+
   return `${field} ${transfiledOperator} ${value}`;
 }
 
@@ -79,17 +126,16 @@ function transpileAST(ast, f2f) {
   let where = '';
 
   if (ast.kinds == KINDS.AST_LTRT) {
-    let lt = transpileAST(ast.expLt);
-    let rt = transpileAST(ast.expRt);
+    let lt = transpileAST(clearAST(ast.expLt));
+    let rt = transpileAST(clearAST(ast.expRt));
 
     where = `${lt} ${ast.andOr} ${rt}`;
   }
   else if (ast.kinds == KINDS.AST_FOV) {
-    const partOfSQL = transpileFOV(ast);
-    where = partOfSQL;
+    where = transpileFOV(clearAST(ast));
   }
   else if (ast.kinds == KINDS.AST_BRACKET) {
-    where = '(' + transpileAST(ast.exp) + ')';
+    where = '(' + transpileAST(clearAST(ast.exp)) + ')';
   }
 
   return where;
@@ -104,9 +150,9 @@ function transpileAST(ast, f2f) {
  */
 function transpile2SQL(ast, astField2DBfield) {
   const f2f = astField2DBfield;
-  let where = transpileAST(ast, f2f);
+  let where = transpileAST(clearAST(ast), f2f);
 
-  return trim(where);
+  return where.trim();
 }
 
 module.exports = { transpile2SQL };
