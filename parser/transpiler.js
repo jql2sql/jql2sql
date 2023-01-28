@@ -1,19 +1,71 @@
-const { trim } = require("lodash");
-const { KINDS, clearAST } = require("./utils");
+const { trim, has } = require("lodash");
+const { KINDS } = require("./utils");
 
 function transpileFOV(ast) {
-  const field = ast.field;
-  const operator = ast.operator;
-  const value = ast.value;
+  const field = ast.cleaned.field;
+  const operator = ast.cleaned.operator;
+  let value = ast.cleaned.value;
+  // console.log('transpileFOV: ' + `${field} ${operator} ${value}`);
+  // console.log(ast);
 
   /** We may use these operators without transfiling */
-  const ops1 = ['=', '!=', '>', '<', '>=', '<='];
+  const opsGroup1 = ['=', '!=', '>', '<', '>=', '<=', 'in', 'not in'];
   /** Operators should be transpiled */
-  const ops2 = ['~', '!~', 'in', 'not in', 'is', 'is not'];
+  const opsGroup2 = ['~', '!~', 'is', 'is not'];
 
-  // TODO Need to transpile as per operator and value
+  const opsTranspiling = {
+    /** We may use these operators without transfiling */
+    '=': '=',
+    '!=': '!=',
+    '>': '>',
+    '<': '<',
+    '>=': '>=',
+    '<=': '<=',
+    'in': 'in',
+    'not in': 'not in',
+    /** Operators should be transpiled */
+    '~': 'LIKE',
+    '!~': 'NOT LIKE',
+    'is': '=',
+    'is not': '!='
+  }
+  const transfiledOperator = opsTranspiling[operator];
+  console.log(transfiledOperator);
 
-  return {field: field, operator: operator, value: value};
+  if (has(ast, 'valueHint') && has(ast.valueHint, 'text')) {
+    const hintText = ast.valueHint.text;
+    if (hintText == 'simpleDoubleQuoteValue') {
+      // escape " i.e) "blah" -> blah
+      value = value.substr(1, value.length - (1*2));
+      value = `'${value}'`;
+    }
+    else if (hintText == 'doubleQuoteValueWithSpace') {
+      // escape " i.e) "blah" -> blah
+      value = value.substr(1, value.length - (1*2));
+      // value contains ' '(space)
+      if (value.indexOf(' ') >= 0) {
+        const vs = value.split(' ');
+        const fovs = vs.map(v => `${field} ${transfiledOperator} '${v}'`);
+
+        return '(' + fovs.join(' and ') + ')';
+      }
+    }
+    else if (hintText == 'doubleQuoteValueWithAsterisk') {
+      // escape " i.e) "blah" -> blah
+      value = value.substr(1, value.length - 2);
+      value = value.replace('*', '%');
+      value = `'${value}'`;
+    }
+    else if (hintText == 'nestedDoubleQuoteValue') {
+      // escape "\"blah\"" i.e) "\"blah\"" -> blah
+      value = value.substr(3, value.length - (3*2));
+      value = `'${value}'`;
+    }
+  }
+
+  // Transpile value as per operator
+  // return {field: field, operator: transfiledOperator, value: value};
+  return `${field} ${transfiledOperator} ${value}`;
 }
 
 /**
@@ -33,10 +85,8 @@ function transpileAST(ast, f2f) {
     where = `${lt} ${ast.andOr} ${rt}`;
   }
   else if (ast.kinds == KINDS.AST_FOV) {
-    const fov = transpileFOV(clearAST(ast));
-    const { field, operator, value } = fov;
-
-    where = `${field} ${operator} ${value}`;
+    const partOfSQL = transpileFOV(ast);
+    where = partOfSQL;
   }
   else if (ast.kinds == KINDS.AST_BRACKET) {
     where = '(' + transpileAST(ast.exp) + ')';
@@ -54,7 +104,7 @@ function transpileAST(ast, f2f) {
  */
 function transpile2SQL(ast, astField2DBfield) {
   const f2f = astField2DBfield;
-  let where = transpileAST(clearAST(ast), f2f);
+  let where = transpileAST(ast, f2f);
 
   return trim(where);
 }

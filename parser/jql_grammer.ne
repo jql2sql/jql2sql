@@ -43,12 +43,76 @@ exp -> field [ ]:* symbolOps [ ]:* value {%
   }
 %}
 
-exp -> field [ ]:* opsAllowOnlyStringValue [ ]:* stringValue {%
+exp -> field [ ]:* opsAllowOnlyStringValue [ ]:* field {%
   function expFOV(data) {
+    const valueHint = {};
+    valueHint.text = 'field';
+
     return {
       kinds: KINDS.EXP_FOV,
       field: data[0],
       ops: data[2],
+      valueHint: valueHint,
+      value: data[4]
+    }
+  }
+%}
+
+exp -> field [ ]:* opsAllowOnlyStringValue [ ]:* simpleDoubleQuoteValue {%
+  function expFOV(data) {
+    const valueHint = {};
+    valueHint.text = 'simpleDoubleQuoteValue';
+
+    return {
+      kinds: KINDS.EXP_FOV,
+      field: data[0],
+      ops: data[2],
+      valueHint: valueHint,
+      value: data[4]
+    }
+  }
+%}
+
+exp -> field [ ]:* opsAllowOnlyStringValue [ ]:* doubleQuoteValueWithSpace {%
+  function expFOV(data) {
+    const valueHint = {};
+    valueHint.text = 'doubleQuoteValueWithSpace';
+
+    return {
+      kinds: KINDS.EXP_FOV,
+      field: data[0],
+      ops: data[2],
+      valueHint: valueHint,
+      value: data[4]
+    }
+  }
+%}
+
+exp -> field [ ]:* opsAllowOnlyStringValue [ ]:* doubleQuoteValueWithAsterisk {%
+  function expFOV(data) {
+    const valueHint = {};
+    valueHint.text = 'doubleQuoteValueWithAsterisk';
+
+    return {
+      kinds: KINDS.EXP_FOV,
+      field: data[0],
+      ops: data[2],
+      valueHint: valueHint,
+      value: data[4]
+    }
+  }
+%}
+
+exp -> field [ ]:* opsAllowOnlyStringValue [ ]:* nestedDoubleQuoteValue {%
+  function expFOV(data) {
+    const valueHint = {};
+    valueHint.text = 'nestedDoubleQuoteValue';
+
+    return {
+      kinds: KINDS.EXP_FOV,
+      field: data[0],
+      ops: data[2],
+      valueHint: valueHint,
       value: data[4]
     }
   }
@@ -56,6 +120,9 @@ exp -> field [ ]:* opsAllowOnlyStringValue [ ]:* stringValue {%
 
 exp -> field [ ]:* opsIn [ ]:* inValue {%
   function expFOV(data) {
+    const valueHint = {};
+    valueHint.text = 'inValue';
+
     return {
       kinds: KINDS.EXP_FOV,
       field: data[0],
@@ -72,17 +139,18 @@ opsTextValue -> "=" | "!=" | "~" | "!~"
 opsIs -> "is not" | "is"
 opsIn -> "not in" | "in"
 
-stringValue -> doubleQuoteValue | field
-doubleQuoteValue -> "\"" [\w :./@]:+ "\""
+simpleDoubleQuoteValue -> "\"" [\w:./@]:+ "\""
+doubleQuoteValueWithSpace -> "\"" [\w :./@]:+ "\""
+doubleQuoteValueWithAsterisk -> "\"" [*] [\w :./@]:+ "\""
+nestedDoubleQuoteValue -> "\"" "\\" "\"" [\w :./@]:+  "\\" "\"" "\""
 
-fieldOrdoubleQuoteValue -> field | doubleQuoteValue
+fieldOrdoubleQuoteValue -> field | doubleQuoteValueWithSpace
 commaFieldOrdoubleQuoteValue -> "," [ ]:* [a-zA-Z0-9_]:* | "," [ ]:* "\"" [\w :./@]:+ "\""
 inValue -> "(" [ ]:* fieldOrdoubleQuoteValue [ ]:* :? commaField [ ]:* ")"
 commaField -> ( commaFieldOrdoubleQuoteValue [ ]:* ):*
 
 # ops -> textOps | symbolOps
 symbolOps -> "=" | "!=" | ">" | "<" | ">=" | "<=" | "~" | "!~"
-
 
 value -> alphabetNumberUnderbar | naturalNumber | function  | decimal
 alphabetNumberUnderbar -> [a-zA-Z] [a-zA-Z0-9_]:*

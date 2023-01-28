@@ -2,6 +2,7 @@ const { parseJQL, KINDS, clearAST, clearSpaceFromValueOfInOperator, myJoin } = r
 
 function testFunction(expectedField, expectedOp, expectedValue) {
   const expr = `${expectedField} ${expectedOp} ${expectedValue}`;
+  console.log('Input: ' + expr);
   let rlt = parseJQL(expr);
   rlt = clearAST(rlt);
 
@@ -10,6 +11,9 @@ function testFunction(expectedField, expectedOp, expectedValue) {
   const operator = rlt.cleaned.operator;
   const value = myJoin(rlt.value);
   
+  const rltExpr = `Parsed output: ${field} ${operator} ${value}`;
+  console.log(rltExpr);
+
   expect(kinds).toBe(KINDS.AST_FOV);
   expect(field).toBe(expectedField);
   expect(operator).toBe(expectedOp);
