@@ -1,6 +1,6 @@
 {
   "name": "jql2sql",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "Transpiling JQL to SQL",
   "main": "index.js",
   "scripts": {
@@ -42,7 +42,7 @@
   "bugs": {
     "url": "https://github.com/jql2sql/jql2sql/issues"
   },
-  "homepage": "https://github.com/jql2sql/jql2sql#readme",
+  "homepage": "https://jql2sql.github.io/",
   "dependencies": {
     "lodash": "^4.17.21",
     "nearley": "^2.20.1"

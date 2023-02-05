@@ -26,7 +26,7 @@ const { parseJQL, transpile2SQL } = require('../../index.js')
   it(expr, () => {
     const ast = parseJQL(expr);
     const where = transpile2SQL(ast, []);
-    expect(where).toBe('(a LIKE \'TEXT1\' and a LIKE \'TEXT2\')');
+    expect(where).toBe('(a LIKE \'TEXT1\' or a LIKE \'TEXT2\')');
   });
 }
 

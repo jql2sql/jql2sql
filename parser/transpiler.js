@@ -88,7 +88,7 @@ function transpileFOV(ast) {
           const vs = value.split(' ');
           const fovs = vs.map(v => `${field} ${transfiledOperator} '${v}'`);
 
-          value = '(' + fovs.join(' and ') + ')';
+          value = '(' + fovs.join(' or ') + ')';
         }
       
         return value;
