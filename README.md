@@ -1,5 +1,11 @@
 # JQL2SQL
-Transfile JQL to SQL to support various searching 'and', 'or', '()', %keyword% and so on.
+This package is helper to implement very comprehensive, flexible searching, something like below.
+
+|jql text|( item is 'good' or item is 'so so' ) and date < now()|
+|---|------------------------------------------------------|
+|**Transpiled SQL**| **(ITEM LIKE 'good' OR ITEM LIKE 'so so') AND DATE < NOW()**| 
+
+We transfile jql text to SQL to support various searching 'and', 'or', '()', %keyword% and so on.
 
 # Live demo
 Please visit our live demo https://jql2sql.github.io/ to understand how jql2sql package works.
