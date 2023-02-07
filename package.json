@@ -1,6 +1,6 @@
 {
   "name": "jql2sql",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Transpiling JQL to SQL",
   "main": "index.js",
   "scripts": {
@@ -10,6 +10,7 @@
     "test:parser": "jest --color --detectOpenHandles --verbose --config=./test/parser/jest.config.js",
     "test:parser:field": "jest --color --detectOpenHandles --verbose --config=./test/parser/field_jest.config.js",
     "test:parser:operator": "jest --color --detectOpenHandles --verbose --config=./test/parser/operator_jest.config.js",
+    "test:parser:tilde": "jest --color --detectOpenHandles --verbose --config=./test/parser/tilde_jest.config.js",
     "test:parser:value": "jest --color --detectOpenHandles --verbose --config=./test/parser/value_jest.config.js",
     "test:transpiler": "jest --color --detectOpenHandles --verbose --config=./test/transpiler/jest.config.js",
     "test:transpiler:in": "jest --color --detectOpenHandles --verbose --config=./test/transpiler/in_jest.config.js",

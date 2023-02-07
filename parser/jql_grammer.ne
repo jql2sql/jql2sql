@@ -59,10 +59,17 @@ opsTilde -> "~" | "!~"
 doubleQuoteValueWithRightAsterisk -> "\"" [\w :./@]:+ "*\""
 doubleQuoteValueWithLeftAsterisk -> "\"*" [\w :./@]:+ "\""
 doubleQuoteValueWithBothAsterisk -> "\"*" [\w :./@]:+ "*\""
+# doubleQuoteValueXSpace means both "aabb" "aa bb"
+# "aabb" is doubleQuoteValueNoSpace
+# "aa bb" is doubleQuoteValueWithSpace
+# Problem is that we can't distingquish doubleQuoteValueNoSpace from doubleQuoteValueWithSpace,
+# We check that value contains ' ' or not.
+doubleQuoteValue -> doubleQuoteValueNoSpace | doubleQuoteValueWithSpace
 doubleQuoteValueNoSpace -> "\"" [\w:./@]:+ "\""
+doubleQuoteValueWithSpace -> "\"" [\w :./@]:+ "\""
 noQuoteValueNoSpace -> [\w:./@]:+
 nestedDoubleQuoteValue -> "\"\\\"" [\w :./@]:+  "\\\"\""
-doubleQuoteValueWithSpace -> "\"" [\w :./@]:+ "\""
+
 
 exp -> field [ ]:* opsTilde [ ]:* noQuoteValueNoSpace {%
   function expFOV(data) {
@@ -79,25 +86,41 @@ exp -> field [ ]:* opsTilde [ ]:* noQuoteValueNoSpace {%
   }
 %}
 
-exp -> field [ ]:* opsTilde [ ]:* doubleQuoteValueNoSpace {%
+exp -> field [ ]:* opsTilde [ ]:* doubleQuoteValue {%
   function expFOV(data) {
-    const valueHint = {};
-    valueHint.text = 'doubleQuoteValueNoSpace';
-
-    return {
-      kinds: KINDS.EXP_FOV,
-      field: data[0],
-      ops: data[2],
-      valueHint: valueHint,
-      value: data[4]
+    // To check that value contains ' '
+    function myContain(mightBeArray, c) {
+      return _myContain(mightBeArray, c);
     }
-  }
-%}
 
-exp -> field [ ]:* opsTilde [ ]:+ doubleQuoteValueWithSpace {%
-  function expFOV(data) {
+    function _myContain(mightBeArray, c) {
+      if (Array.isArray(mightBeArray)) {
+        for (const element of mightBeArray) {
+          if (Array.isArray(element)) {
+            if (_myContain(element, c))
+              return true;
+          }
+          else {
+            if (element == c)
+              return true;
+          }
+        }
+      }
+      else {
+        if (mightBeArray.includes(c))
+          return true;
+      }
+
+      return false;
+    }
+
     const valueHint = {};
-    valueHint.text = 'doubleQuoteValueWithSpace';
+    if (myContain(data[4], ' ')) {
+      valueHint.text = 'doubleQuoteValueWithSpace';
+    }
+    else {
+      valueHint.text = 'doubleQuoteValueNoSpace';
+    }
 
     return {
       kinds: KINDS.EXP_FOV,
@@ -208,10 +231,25 @@ exp -> field [ ]:* opsIs [ ]:* value {%
   }
 %}
 
-exp -> field [ ]:* opsIs [ ]:* doubleQuoteValueWithSpace {%
+exp -> field [ ]:* opsIs [ ]:* doubleQuoteValue {%
   function expFOV(data) {
     const valueHint = {};
-    valueHint.text = 'doubleQuoteValueWithSpace';
+    valueHint.text = 'doubleQuoteValue';
+
+    return {
+      kinds: KINDS.EXP_FOV,
+      field: data[0],
+      ops: data[2],
+      valueHint: valueHint,
+      value: data[4]
+    }
+  }
+%}
+
+exp -> field [ ]:* opsEuqal [ ]:* doubleQuoteValue {%
+  function expFOV(data) {
+    const valueHint = {};
+    valueHint.text = 'doubleQuoteValue';
 
     return {
       kinds: KINDS.EXP_FOV,

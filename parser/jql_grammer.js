@@ -119,9 +119,14 @@ var grammar = {
     {"name": "doubleQuoteValueWithBothAsterisk$ebnf$1", "symbols": ["doubleQuoteValueWithBothAsterisk$ebnf$1", /[\w :./@]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "doubleQuoteValueWithBothAsterisk$string$2", "symbols": [{"literal":"*"}, {"literal":"\""}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "doubleQuoteValueWithBothAsterisk", "symbols": ["doubleQuoteValueWithBothAsterisk$string$1", "doubleQuoteValueWithBothAsterisk$ebnf$1", "doubleQuoteValueWithBothAsterisk$string$2"]},
+    {"name": "doubleQuoteValue", "symbols": ["doubleQuoteValueNoSpace"]},
+    {"name": "doubleQuoteValue", "symbols": ["doubleQuoteValueWithSpace"]},
     {"name": "doubleQuoteValueNoSpace$ebnf$1", "symbols": [/[\w:./@]/]},
     {"name": "doubleQuoteValueNoSpace$ebnf$1", "symbols": ["doubleQuoteValueNoSpace$ebnf$1", /[\w:./@]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "doubleQuoteValueNoSpace", "symbols": [{"literal":"\""}, "doubleQuoteValueNoSpace$ebnf$1", {"literal":"\""}]},
+    {"name": "doubleQuoteValueWithSpace$ebnf$1", "symbols": [/[\w :./@]/]},
+    {"name": "doubleQuoteValueWithSpace$ebnf$1", "symbols": ["doubleQuoteValueWithSpace$ebnf$1", /[\w :./@]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "doubleQuoteValueWithSpace", "symbols": [{"literal":"\""}, "doubleQuoteValueWithSpace$ebnf$1", {"literal":"\""}]},
     {"name": "noQuoteValueNoSpace$ebnf$1", "symbols": [/[\w:./@]/]},
     {"name": "noQuoteValueNoSpace$ebnf$1", "symbols": ["noQuoteValueNoSpace$ebnf$1", /[\w:./@]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "noQuoteValueNoSpace", "symbols": ["noQuoteValueNoSpace$ebnf$1"]},
@@ -130,9 +135,6 @@ var grammar = {
     {"name": "nestedDoubleQuoteValue$ebnf$1", "symbols": ["nestedDoubleQuoteValue$ebnf$1", /[\w :./@]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "nestedDoubleQuoteValue$string$2", "symbols": [{"literal":"\\"}, {"literal":"\""}, {"literal":"\""}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "nestedDoubleQuoteValue", "symbols": ["nestedDoubleQuoteValue$string$1", "nestedDoubleQuoteValue$ebnf$1", "nestedDoubleQuoteValue$string$2"]},
-    {"name": "doubleQuoteValueWithSpace$ebnf$1", "symbols": [/[\w :./@]/]},
-    {"name": "doubleQuoteValueWithSpace$ebnf$1", "symbols": ["doubleQuoteValueWithSpace$ebnf$1", /[\w :./@]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "doubleQuoteValueWithSpace", "symbols": [{"literal":"\""}, "doubleQuoteValueWithSpace$ebnf$1", {"literal":"\""}]},
     {"name": "exp$ebnf$7", "symbols": []},
     {"name": "exp$ebnf$7", "symbols": ["exp$ebnf$7", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "exp$ebnf$8", "symbols": []},
@@ -155,10 +157,41 @@ var grammar = {
     {"name": "exp$ebnf$9", "symbols": ["exp$ebnf$9", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "exp$ebnf$10", "symbols": []},
     {"name": "exp$ebnf$10", "symbols": ["exp$ebnf$10", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "exp", "symbols": ["field", "exp$ebnf$9", "opsTilde", "exp$ebnf$10", "doubleQuoteValueNoSpace"], "postprocess": 
+    {"name": "exp", "symbols": ["field", "exp$ebnf$9", "opsTilde", "exp$ebnf$10", "doubleQuoteValue"], "postprocess": 
         function expFOV(data) {
+          // To check that value contains ' '
+          function myContain(mightBeArray, c) {
+            return _myContain(mightBeArray, c);
+          }
+        
+          function _myContain(mightBeArray, c) {
+            if (Array.isArray(mightBeArray)) {
+              for (const element of mightBeArray) {
+                if (Array.isArray(element)) {
+                  if (_myContain(element, c))
+                    return true;
+                }
+                else {
+                  if (element == c)
+                    return true;
+                }
+              }
+            }
+            else {
+              if (mightBeArray.includes(c))
+                return true;
+            }
+        
+            return false;
+          }
+        
           const valueHint = {};
-          valueHint.text = 'doubleQuoteValueNoSpace';
+          if (myContain(data[4], ' ')) {
+            valueHint.text = 'doubleQuoteValueWithSpace';
+          }
+          else {
+            valueHint.text = 'doubleQuoteValueNoSpace';
+          }
         
           return {
             kinds: KINDS.EXP_FOV,
@@ -171,12 +204,12 @@ var grammar = {
         },
     {"name": "exp$ebnf$11", "symbols": []},
     {"name": "exp$ebnf$11", "symbols": ["exp$ebnf$11", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "exp$ebnf$12", "symbols": [/[ ]/]},
+    {"name": "exp$ebnf$12", "symbols": []},
     {"name": "exp$ebnf$12", "symbols": ["exp$ebnf$12", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "exp", "symbols": ["field", "exp$ebnf$11", "opsTilde", "exp$ebnf$12", "doubleQuoteValueWithSpace"], "postprocess": 
+    {"name": "exp", "symbols": ["field", "exp$ebnf$11", "opsTilde", "exp$ebnf$12", "nestedDoubleQuoteValue"], "postprocess": 
         function expFOV(data) {
           const valueHint = {};
-          valueHint.text = 'doubleQuoteValueWithSpace';
+          valueHint.text = 'nestedDoubleQuoteValue';
         
           return {
             kinds: KINDS.EXP_FOV,
@@ -191,10 +224,10 @@ var grammar = {
     {"name": "exp$ebnf$13", "symbols": ["exp$ebnf$13", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "exp$ebnf$14", "symbols": []},
     {"name": "exp$ebnf$14", "symbols": ["exp$ebnf$14", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "exp", "symbols": ["field", "exp$ebnf$13", "opsTilde", "exp$ebnf$14", "nestedDoubleQuoteValue"], "postprocess": 
+    {"name": "exp", "symbols": ["field", "exp$ebnf$13", "opsTilde", "exp$ebnf$14", "doubleQuoteValueWithBothAsterisk"], "postprocess": 
         function expFOV(data) {
           const valueHint = {};
-          valueHint.text = 'nestedDoubleQuoteValue';
+          valueHint.text = 'doubleQuoteValueWithBothAsterisk';
         
           return {
             kinds: KINDS.EXP_FOV,
@@ -209,10 +242,10 @@ var grammar = {
     {"name": "exp$ebnf$15", "symbols": ["exp$ebnf$15", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "exp$ebnf$16", "symbols": []},
     {"name": "exp$ebnf$16", "symbols": ["exp$ebnf$16", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "exp", "symbols": ["field", "exp$ebnf$15", "opsTilde", "exp$ebnf$16", "doubleQuoteValueWithBothAsterisk"], "postprocess": 
+    {"name": "exp", "symbols": ["field", "exp$ebnf$15", "opsTilde", "exp$ebnf$16", "doubleQuoteValueWithRightAsterisk"], "postprocess": 
         function expFOV(data) {
           const valueHint = {};
-          valueHint.text = 'doubleQuoteValueWithBothAsterisk';
+          valueHint.text = 'doubleQuoteValueWithRightAsterisk';
         
           return {
             kinds: KINDS.EXP_FOV,
@@ -227,25 +260,7 @@ var grammar = {
     {"name": "exp$ebnf$17", "symbols": ["exp$ebnf$17", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "exp$ebnf$18", "symbols": []},
     {"name": "exp$ebnf$18", "symbols": ["exp$ebnf$18", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "exp", "symbols": ["field", "exp$ebnf$17", "opsTilde", "exp$ebnf$18", "doubleQuoteValueWithRightAsterisk"], "postprocess": 
-        function expFOV(data) {
-          const valueHint = {};
-          valueHint.text = 'doubleQuoteValueWithRightAsterisk';
-        
-          return {
-            kinds: KINDS.EXP_FOV,
-            field: data[0],
-            ops: data[2],
-            valueHint: valueHint,
-            value: data[4]
-          }
-        }
-        },
-    {"name": "exp$ebnf$19", "symbols": []},
-    {"name": "exp$ebnf$19", "symbols": ["exp$ebnf$19", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "exp$ebnf$20", "symbols": []},
-    {"name": "exp$ebnf$20", "symbols": ["exp$ebnf$20", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "exp", "symbols": ["field", "exp$ebnf$19", "opsTilde", "exp$ebnf$20", "doubleQuoteValueWithLeftAsterisk"], "postprocess": 
+    {"name": "exp", "symbols": ["field", "exp$ebnf$17", "opsTilde", "exp$ebnf$18", "doubleQuoteValueWithLeftAsterisk"], "postprocess": 
         function expFOV(data) {
           const valueHint = {};
           valueHint.text = 'doubleQuoteValueWithLeftAsterisk';
@@ -293,11 +308,11 @@ var grammar = {
     {"name": "commaDoubleQuoteValueWithSpace$ebnf$1", "symbols": []},
     {"name": "commaDoubleQuoteValueWithSpace$ebnf$1", "symbols": ["commaDoubleQuoteValueWithSpace$ebnf$1", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "commaDoubleQuoteValueWithSpace", "symbols": [{"literal":","}, "commaDoubleQuoteValueWithSpace$ebnf$1", "doubleQuoteValueWithSpace"]},
-    {"name": "exp$ebnf$21", "symbols": []},
-    {"name": "exp$ebnf$21", "symbols": ["exp$ebnf$21", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "exp$ebnf$22", "symbols": []},
-    {"name": "exp$ebnf$22", "symbols": ["exp$ebnf$22", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "exp", "symbols": ["field", "exp$ebnf$21", "opsIn", "exp$ebnf$22", "inValue"], "postprocess": 
+    {"name": "exp$ebnf$19", "symbols": []},
+    {"name": "exp$ebnf$19", "symbols": ["exp$ebnf$19", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "exp$ebnf$20", "symbols": []},
+    {"name": "exp$ebnf$20", "symbols": ["exp$ebnf$20", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "exp", "symbols": ["field", "exp$ebnf$19", "opsIn", "exp$ebnf$20", "inValue"], "postprocess": 
         function expFOV(data) {
           return {
             kinds: KINDS.EXP_FOV,
@@ -314,14 +329,32 @@ var grammar = {
     {"name": "opsIs", "symbols": ["opsIs$string$1"]},
     {"name": "opsIs$string$2", "symbols": [{"literal":"i"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "opsIs", "symbols": ["opsIs$string$2"]},
+    {"name": "exp$ebnf$21", "symbols": []},
+    {"name": "exp$ebnf$21", "symbols": ["exp$ebnf$21", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "exp$ebnf$22", "symbols": []},
+    {"name": "exp$ebnf$22", "symbols": ["exp$ebnf$22", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "exp", "symbols": ["field", "exp$ebnf$21", "opsIs", "exp$ebnf$22", "value"], "postprocess": 
+        function expFOV(data) {
+          const valueHint = {};
+          valueHint.text = 'value';
+        
+          return {
+            kinds: KINDS.EXP_FOV,
+            field: data[0],
+            ops: data[2],
+            valueHint: valueHint,
+            value: data[4]
+          }
+        }
+        },
     {"name": "exp$ebnf$23", "symbols": []},
     {"name": "exp$ebnf$23", "symbols": ["exp$ebnf$23", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "exp$ebnf$24", "symbols": []},
     {"name": "exp$ebnf$24", "symbols": ["exp$ebnf$24", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "exp", "symbols": ["field", "exp$ebnf$23", "opsIs", "exp$ebnf$24", "value"], "postprocess": 
+    {"name": "exp", "symbols": ["field", "exp$ebnf$23", "opsIs", "exp$ebnf$24", "doubleQuoteValue"], "postprocess": 
         function expFOV(data) {
           const valueHint = {};
-          valueHint.text = 'value';
+          valueHint.text = 'doubleQuoteValue';
         
           return {
             kinds: KINDS.EXP_FOV,
@@ -336,10 +369,10 @@ var grammar = {
     {"name": "exp$ebnf$25", "symbols": ["exp$ebnf$25", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "exp$ebnf$26", "symbols": []},
     {"name": "exp$ebnf$26", "symbols": ["exp$ebnf$26", /[ ]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "exp", "symbols": ["field", "exp$ebnf$25", "opsIs", "exp$ebnf$26", "doubleQuoteValueWithSpace"], "postprocess": 
+    {"name": "exp", "symbols": ["field", "exp$ebnf$25", "opsEuqal", "exp$ebnf$26", "doubleQuoteValue"], "postprocess": 
         function expFOV(data) {
           const valueHint = {};
-          valueHint.text = 'doubleQuoteValueWithSpace';
+          valueHint.text = 'doubleQuoteValue';
         
           return {
             kinds: KINDS.EXP_FOV,
